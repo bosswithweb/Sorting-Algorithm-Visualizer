@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sorting Algorithm Visualizer</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -16,12 +16,16 @@
         <option value="quick">Quick Sort</option>
       </select>
     </label>
+
     <label>Array Size:
-      <input type="range" min="10" max="100" value="50" id="arraySize" />
+      <input type="range" min="10" max="100" value="50" id="arraySize" oninput="updateArraySizeLabel()" />
+      <span id="arraySizeValue">50</span>
     </label>
+
     <label>Speed:
       <input type="range" min="10" max="1000" value="100" id="speed" />
     </label>
+
     <button onclick="generateArray()">Randomize</button>
     <button onclick="startSort()">Sort</button>
   </div>
