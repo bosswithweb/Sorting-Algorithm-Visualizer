@@ -34,11 +34,20 @@ async function startSort() {
   delay = 1000 - +speedSlider.value;
   const algorithm = document.getElementById("algorithm").value;
   let generator;
+
   switch (algorithm) {
-    case "bubble": generator = bubbleSort(); break;
-    case "selection": generator = selectionSort(); break;
-    case "merge": generator = mergeSort(0, array.length - 1); break;
-    case "quick": generator = quickSort(0, array.length - 1); break;
+    case "bubble":
+      generator = bubbleSort();
+      break;
+    case "selection":
+      generator = selectionSort();
+      break;
+    case "merge":
+      generator = mergeSort(); // ✅ called only once now
+      break;
+    case "quick":
+      generator = quickSort(0, array.length - 1);
+      break;
   }
 
   for (let step of generator) {
@@ -57,7 +66,12 @@ function markSorted() {
   });
 }
 
-// Sorting Algorithms as Generators
+function updateArraySizeLabel() {
+  document.getElementById("arraySizeValue").textContent = arraySizeSlider.value;
+  generateArray();
+}
+
+// ---------- Sorting Algorithms ---------- //
 
 function* bubbleSort() {
   const n = array.length;
@@ -89,20 +103,27 @@ function* selectionSort() {
   }
 }
 
-function* mergeSort(left, right) {
-  if (left >= right) return;
+function* mergeSort() {
+  const n = array.length;
+  let currSize, leftStart;
 
-  const mid = Math.floor((left + right) / 2);
-  yield* mergeSort(left, mid);
-  yield* mergeSort(mid + 1, right);
-  yield* merge(left, mid, right);
+  for (currSize = 1; currSize < n; currSize *= 2) {
+    for (leftStart = 0; leftStart < n; leftStart += 2 * currSize) {
+      const mid = Math.min(leftStart + currSize - 1, n - 1);
+      const rightEnd = Math.min(leftStart + 2 * currSize - 1, n - 1);
+
+      if (mid < rightEnd) {
+        yield* mergeIterative(leftStart, mid, rightEnd);
+      }
+    }
+  }
 }
 
-function* merge(left, mid, right) {
+function* mergeIterative(left, mid, right) {
   const leftPart = array.slice(left, mid + 1);
   const rightPart = array.slice(mid + 1, right + 1);
-
   let i = 0, j = 0, k = left;
+
   while (i < leftPart.length && j < rightPart.length) {
     yield [k];
     if (leftPart[i] <= rightPart[j]) {
@@ -124,15 +145,24 @@ function* merge(left, mid, right) {
 }
 
 function* quickSort(start, end) {
-  if (start >= end) return;
-  const pivotIndex = yield* partition(start, end);
-  yield* quickSort(start, pivotIndex - 1);
-  yield* quickSort(pivotIndex + 1, end);
+  const stack = [];
+  stack.push({ start, end });
+
+  while (stack.length > 0) {
+    const { start, end } = stack.pop();
+
+    if (start < end) {
+      const pivotIndex = yield* partition(start, end);
+      stack.push({ start: start, end: pivotIndex - 1 });
+      stack.push({ start: pivotIndex + 1, end: end });
+    }
+  }
 }
 
 function* partition(start, end) {
   let pivot = array[end];
   let i = start;
+
   for (let j = start; j < end; j++) {
     yield [j, end];
     if (array[j] < pivot) {
@@ -141,9 +171,12 @@ function* partition(start, end) {
       i++;
     }
   }
+
   [array[i], array[end]] = [array[end], array[i]];
   yield [i, end];
   return i;
 }
+
+// ---------- Init ---------- //
 
 generateArray();
